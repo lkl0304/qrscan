@@ -55,7 +55,7 @@
         navigator.mediaDevices.enumerateDevices().then(function(devices) {
             devices.forEach(function(device) {
                 var p = document.createElement('p');
-                p.innerHTML = device.kind + ': ' + device.deviceId;
+                p.innerHTML = device.kind + ': ' + device.deviceId + ' label: ' + device.label;
                 if (device.kind.startsWith('video')) {
                     deviceId = device.deviceId;
                 }
@@ -66,7 +66,7 @@
              // 配置设置
             var mediaOpts = {
                 audio: false,
-                video: true
+                video: { deviceId: deviceId }
                 // video: { facingMode: { exact: "environment" } }  // 后置摄像头 user前置
             };
             if (video === undefined) {
