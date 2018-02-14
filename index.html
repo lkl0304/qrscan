@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Type" content="text/html" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no" />
+    <meta name="renderer" content="webkit">
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="format-detection" content="telephone=no" />
+    <title>获取设备摄像头 getUserMedia</title>
+    <style>
+        video {
+            display: block;
+            margin: 0 auto;
+            width: 240px;
+            height: 240px;
+            background: #000;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="video"></div>
+    <div>
+        <button onclick="openScan('video');">打开</button>
+        <button onclick="closeScan('video');">上传</button>
+    </div>
+    <div id="img"></div>
+<script>
+    // 各种兼容性设置
+    window.URL = (window.URL || window.webkitURL || window.mozURL || window.msURL);
+    // 配置设置
+    var mediaOpts = {
+        audio: false,
+        video: { facingMode: "environment"}  // 后置摄像头 user前置
+    };
+
+    var video = undefined;
+    function openScan(id) {
+        var vs = document.getElementById(id);
+        if (video === undefined) {
+            video = document.createElement('video');
+            navigator.mediaDevices.getUserMedia(mediaOpts).then(function (stream) {
+                video.src = window.URL && window.URL.createObjectURL(stream) || stream;
+            }).catch(function (err) {
+                console.log(err.name);
+            });
+        }
+        video.play();
+        vs.appendChild(video);
+    }
+    
+    function closeScan(id) {
+        var vs = document.getElementById(id);
+        var video = vs.childNodes[0];
+        video.pause();
+        vs.removeChild(video);
+    }
+
+    function getImgDecode(fun) {
+        var video = document.querySelector('video');
+        var canvas = document.createElement('canvas');
+        canvas.width = 340;
+        canvas.height = 305;
+        var ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, 340, 305);
+        if (canvas.toBlob === undefined) {
+            var base64 = canvas.toDataURL();
+            var blob = Base64ToBlob(base64);
+            sendBlob(blob, fun);
+        } else {
+            canvas.toBlob(function (blob) {
+                sendBlob(blob, fun);
+            });
+        }
+    }
+
+    function sendBlob(blob, fun) {
+        var div = document.getElementById('img');
+        var fr = new FileReader();
+        fr.onloadend = function (e) {
+            var img = document.createElement('img');
+            img.src = e.target.result;
+            div.appendChild(img);
+        };
+        fr.readAsDataURL(blob);
+
+        var fd = new FormData();
+        fd.append('auth', 'lkl123456');
+        fd.append('file', blob);
+        var xhr = new XMLHttpRequest();
+        xhr.open('post', 'http://127.0.0.1:9000/api/parse', true);
+        xhr.onload = function () {
+           fun ? fun(xhr.responseText) : null;
+        };
+        xhr.send(fd);
+    }
+
+    function Base64ToBlob(base64) {
+        var code = window.atob(base64.split(',')[1]);
+        var len = code.length;
+        var as = new Uint8Array(len);
+        for (var i = 0; i < len; i++) {
+            as[i] = code.charCodeAt(i);
+        }
+        return new Blob([as], {type: 'image/png'});
+    }
+</script>
+</body>
+</html>
