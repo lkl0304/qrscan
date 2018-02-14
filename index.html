@@ -26,6 +26,7 @@
         <button onclick="openScan('video');">打开</button>
         <button id="up">上传</button>
     </div>
+    <div id="device"></div>
     <div id="result"></div>
 <script>
 
@@ -45,26 +46,42 @@
 
     // 各种兼容性设置
     window.URL = (window.URL || window.webkitURL || window.mozURL || window.msURL);
-    // 配置设置
-    var mediaOpts = {
-        audio: false,
-        video: { facingMode: 'user' }
-        // video: { facingMode: { exact: "environment" } }  // 后置摄像头 user前置
-    };
+    var deviceId = '';
 
     var video = undefined;
+    var dediv = document.getElementById('device');
     function openScan(id) {
         var vs = document.getElementById(id);
-        if (video === undefined) {
-            video = document.createElement('video');
-            navigator.mediaDevices.getUserMedia(mediaOpts).then(function (stream) {
-                video.src = window.URL && window.URL.createObjectURL(stream) || stream;
-            }).catch(function (err) {
-                console.log(err.name);
+        navigator.mediaDevices.enumerateDevices().then(function(devices) {
+            devices.forEach(function(device) {
+                var p = document.createElement('p');
+                p.innerHTML = device.kind + ': ' + device.deviceId;
+                if (device.kind.startsWith('video')) {
+                    deviceId = device.deviceId;
+                }
+                dediv.appendChild(p);
             });
-        }
-        video.play();
-        vs.appendChild(video);
+
+             // 配置设置
+            var mediaOpts = {
+                audio: false,
+                video: { deviceId: deviceId }
+                // video: { facingMode: { exact: "environment" } }  // 后置摄像头 user前置
+            };
+            if (video === undefined) {
+                video = document.createElement('video');
+                console.log(mediaOpts);
+                navigator.mediaDevices.getUserMedia(mediaOpts).then(function (stream) {
+                    video.src = window.URL && window.URL.createObjectURL(stream) || stream;
+                }).catch(function (err) {
+                    console.log(err.name);
+                });
+            }
+            video.play();
+            vs.appendChild(video);
+        }).catch(function(err) {
+            console.log(err.name + ": " + err.message);
+        });
     }
 
     function closeScan(id) {
