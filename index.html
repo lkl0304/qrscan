@@ -33,7 +33,7 @@
     // 配置设置
     var mediaOpts = {
         audio: false,
-        video: { facingMode: "environment"}  // 后置摄像头 user前置
+        video: { facingMode: { exact: "environment" } }  // 后置摄像头 user前置
     };
 
     var video = undefined;
