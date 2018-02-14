@@ -29,7 +29,6 @@
     <div id="device"></div>
     <div id="result"></div>
 <script>
-
     document.getElementById('up').onclick = function () {
         getImgDecode(function (data) {
             console.log(data);
@@ -46,50 +45,49 @@
 
     // 各种兼容性设置
     window.URL = (window.URL || window.webkitURL || window.mozURL || window.msURL);
-    var deviceId = '';
+    var can_open = false;
+    var videos = [];
+    var mediaOpts = {};
+    navigator.mediaDevices.enumerateDevices().then(function(devices) {
+        devices.forEach(function (device) {
+            if (device.kind.startsWith('video')) {
+                videos.push(device.deviceId);
+                console.log(device);
+            }
+        });
+        mediaOpts = {
+            audio: false,
+            video: { deviceId: videos.pop() }
+        };
+        can_open = true;
+    });
+
 
     var video = undefined;
     var dediv = document.getElementById('device');
     function openScan(id) {
-        var vs = document.getElementById(id);
-        navigator.mediaDevices.enumerateDevices().then(function(devices) {
-            devices.forEach(function(device) {
-                var p = document.createElement('p');
-                p.innerHTML = device.kind + ': ' + device.deviceId + ' label: ' + device.label;
-                if (device.kind.startsWith('video')) {
-                    deviceId = device.deviceId;
-                }
-                console.log(device);
-                dediv.appendChild(p);
-            });
-
-             // 配置设置
-            var mediaOpts = {
-                audio: false,
-                // video: { deviceId: deviceId }
-                video: { facingMode: { exact: "environment" } }  // 后置摄像头 user前置
-            };
+        if (can_open) {
+            var vs = document.getElementById(id);
             if (video === undefined) {
                 video = document.createElement('video');
                 console.log(mediaOpts);
                 navigator.mediaDevices.getUserMedia(mediaOpts).then(function (stream) {
+                    video.src = window.URL && window.URL.createObjectURL(stream) || stream;
+
                     stream.getVideoTracks().forEach(function (t) {
                         console.log(t);
                         var p = document.createElement('p');
                         p.innerHTML = 'kind: '+ t.kind + ' enabled: ' + t.enabled + ' id: ' + t.id +
-                                    ' label: ' + t.label;
+                            ' label: ' + t.label;
                         dediv.appendChild(p);
                     });
-                    video.src = window.URL && window.URL.createObjectURL(stream) || stream;
                 }).catch(function (err) {
                     console.log(err.name);
                 });
             }
             video.play();
             vs.appendChild(video);
-        }).catch(function(err) {
-            console.log(err.name + ": " + err.message);
-        });
+        }
     }
 
     function closeScan(id) {
@@ -99,6 +97,7 @@
         vs.removeChild(video);
     }
 
+    // 截图上传
     function getImgDecode(fun) {
         var video = document.querySelector('video');
         var canvas = document.createElement('canvas');
