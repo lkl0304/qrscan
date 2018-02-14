@@ -106,7 +106,7 @@
         fd.append('auth', 'lkl123456');
         fd.append('file', blob);
         var xhr = new XMLHttpRequest();
-        xhr.open('post', 'https://bird.ioliu.cn/v1?url=http://123.206.7.80:10082/api/parse', true);
+        xhr.open('post', 'http://123.206.7.80:10082/api/parse', true);
         xhr.onload = function () {
            fun ? fun(JSON.parse(xhr.responseText)) : null;
         };
