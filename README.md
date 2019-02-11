@@ -1,3 +1,2 @@
-## Welcome to GitHub Pages
-
-
+JS实现二维扫码功能
+JS获取位置信息
