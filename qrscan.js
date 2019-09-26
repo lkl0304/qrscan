@@ -56,6 +56,7 @@
                 vd.setAttribute('id', 'video_id');
                 navigator.mediaDevices.getUserMedia(self.medioConfig).then(function (stream) {
                     vd.src = win.URL.createObjectURL(stream);
+                    //  vd.srcObject = stream  在新的浏览器中需使用此代替createObjectURL
                     self.div_can.appendChild(vd);
                 }).catch(function (err) {
                     var p = doc.createElement('p');
